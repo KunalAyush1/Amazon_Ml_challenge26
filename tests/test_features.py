@@ -3,7 +3,7 @@ from business_entity_resol.features.address_features import address_features
 from business_entity_resol.features.numeric_features import numeric_features
 from business_entity_resol.features.country_features import country_features
 from business_entity_resol.features.lexical_features import lexical_features
-
+from business_entity_resol.features.blocker_features import blocker_features
 
 # =========================
 # Name Features
@@ -446,3 +446,77 @@ def test_lexical_features_missing_values():
     assert features["lexical_token_jaccard"] == 0.0
     assert features["lexical_token_count_1"] == 0
     assert features["lexical_token_count_2"] == 2
+# =========================
+# Blocker Features
+# =========================
+
+def test_blocker_features_multiple_blockers():
+    candidate = {
+        "blocker_provenance": ["exact_name", "tfidf"],
+        "ranks": {
+            "tfidf": 3,
+        },
+    }
+
+    features = blocker_features(candidate)
+
+    assert features["blocker_num_blockers"] == 2
+    assert features["blocker_best_rank"] == 3
+    assert features["blocker_has_rank"] == 1
+    assert features["blocker_rank_count"] == 1
+    assert features["blocker_provenance_count"] == 2
+
+
+def test_blocker_features_multiple_ranks():
+    candidate = {
+        "blocker_provenance": [
+            "exact_name",
+            "rare_token",
+            "tfidf",
+        ],
+        "ranks": {
+            "rare_token": 5,
+            "tfidf": 2,
+        },
+    }
+
+    features = blocker_features(candidate)
+
+    assert features["blocker_num_blockers"] == 3
+    assert features["blocker_best_rank"] == 2
+    assert features["blocker_has_rank"] == 1
+    assert features["blocker_rank_count"] == 2
+    assert features["blocker_provenance_count"] == 3
+
+
+def test_blocker_features_without_ranks():
+    candidate = {
+        "blocker_provenance": [
+            "exact_name",
+            "numeric",
+        ],
+        "ranks": {},
+    }
+
+    features = blocker_features(candidate)
+
+    assert features["blocker_num_blockers"] == 2
+    assert features["blocker_best_rank"] == 0
+    assert features["blocker_has_rank"] == 0
+    assert features["blocker_rank_count"] == 0
+    assert features["blocker_provenance_count"] == 2
+
+
+def test_blocker_features_empty_values():
+    candidate = {
+        "blocker_provenance": [],
+        "ranks": {},
+    }
+
+    features = blocker_features(candidate)
+
+    assert features["blocker_num_blockers"] == 0
+    assert features["blocker_best_rank"] == 0
+    assert features["blocker_has_rank"] == 0
+    assert features["blocker_rank_count"] == 0
+    assert features["blocker_provenance_count"] == 0
