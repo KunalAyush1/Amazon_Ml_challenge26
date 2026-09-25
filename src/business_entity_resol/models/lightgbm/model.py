@@ -157,7 +157,8 @@ class LightGBMMatcher:
                     "different lengths."
                 )
 
-            fit_kwargs["eval_set"] = [(X_valid, y_valid)]
+            fit_kwargs["eval_X"] = X_valid
+            fit_kwargs["eval_y"] = y_valid
 
         self.model.fit(
             X,
