@@ -39,8 +39,12 @@ def name_features(
     ``name``, ``name_norm`` and ``name_compact``.
     """
 
-    name1 = _text(source1.get("name"))
-    name2 = _text(candidate.get("name"))
+    name1 = _text(
+        source1.get("business_name", source1.get("name"))
+    )
+    name2 = _text(
+        candidate.get("business_name", candidate.get("name"))
+    )
 
     name1_norm = _text(source1.get("name_norm"))
     name2_norm = _text(candidate.get("name_norm"))

@@ -18,7 +18,17 @@ def _text(value: Any) -> str:
 
 def _extract_numbers(value: Any) -> list[str]:
     """Extract numeric tokens from a value."""
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple, set)):
+        return [
+            str(item).strip()
+            for item in value
+            if item is not None and str(item).strip()
+        ]
+    
     text = _text(value)
+    
     return _NUMBER_PATTERN.findall(text)
 
 
@@ -48,7 +58,7 @@ def numeric_features(
         "numeric_count_2": len(values2),
         "numeric_overlap_count": len(intersection),
         "numeric_jaccard": (
-            len(intersection) / len(union) if union else 1.0
+            len(intersection) / len(union) if union else 0.0
         ),
         "numeric_exact_match": int(
             bool(values1) and bool(values2) and values1 == values2
