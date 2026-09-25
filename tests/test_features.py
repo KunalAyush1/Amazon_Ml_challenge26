@@ -2,6 +2,7 @@ from business_entity_resol.features.name_features import name_features
 from business_entity_resol.features.address_features import address_features
 from business_entity_resol.features.numeric_features import numeric_features
 from business_entity_resol.features.country_features import country_features
+from business_entity_resol.features.lexical_features import lexical_features
 
 
 # =========================
@@ -350,3 +351,98 @@ def test_country_features_missing_values():
     assert features["country_both_present"] == 0
     assert features["country_missing_1"] == 1
     assert features["country_missing_2"] == 0
+    
+
+
+# =========================
+# Lexical Features
+# =========================
+
+def test_lexical_features_exact_match():
+    source1 = {
+        "name_norm": "amazon india",
+    }
+
+    candidate = {
+        "name_norm": "amazon india",
+    }
+
+    features = lexical_features(
+        source1,
+        candidate,
+        field="name_norm",
+    )
+
+    assert features["lexical_exact"] == 1
+    assert features["lexical_ratio"] == 1.0
+    assert features["lexical_partial_ratio"] == 1.0
+    assert features["lexical_token_sort_ratio"] == 1.0
+    assert features["lexical_token_set_ratio"] == 1.0
+    assert features["lexical_token_jaccard"] == 1.0
+    assert features["lexical_token_overlap_count"] == 2
+
+
+def test_lexical_features_similar_text():
+    source1 = {
+        "name_norm": "amazon india private limited",
+    }
+
+    candidate = {
+        "name_norm": "amazon india pvt ltd",
+    }
+
+    features = lexical_features(
+        source1,
+        candidate,
+        field="name_norm",
+    )
+
+    assert features["lexical_exact"] == 0
+    assert features["lexical_ratio"] > 0.5
+    assert features["lexical_partial_ratio"] > 0.5
+    assert features["lexical_token_set_ratio"] > 0.5
+    assert features["lexical_token_jaccard"] >= 0.0
+
+
+def test_lexical_features_token_order():
+    source1 = {
+        "name_norm": "india amazon",
+    }
+
+    candidate = {
+        "name_norm": "amazon india",
+    }
+
+    features = lexical_features(
+        source1,
+        candidate,
+        field="name_norm",
+    )
+
+    assert features["lexical_exact"] == 0
+    assert features["lexical_token_sort_ratio"] == 1.0
+    assert features["lexical_token_set_ratio"] == 1.0
+    assert features["lexical_token_jaccard"] == 1.0
+
+
+def test_lexical_features_missing_values():
+    source1 = {
+        "name_norm": None,
+    }
+
+    candidate = {
+        "name_norm": "amazon india",
+    }
+
+    features = lexical_features(
+        source1,
+        candidate,
+        field="name_norm",
+    )
+
+    assert features["lexical_exact"] == 0
+    assert features["lexical_ratio"] == 0.0
+    assert features["lexical_partial_ratio"] == 0.0
+    assert features["lexical_token_jaccard"] == 0.0
+    assert features["lexical_token_count_1"] == 0
+    assert features["lexical_token_count_2"] == 2
