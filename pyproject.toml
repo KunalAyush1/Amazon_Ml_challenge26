@@ -29,3 +29,6 @@ dev = [
     "ruff>=0.16.9",
     "seaborn>=0.13.2",
 ]
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
