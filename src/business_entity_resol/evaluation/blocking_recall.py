@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
+from statistics import mean, median
 
 
 def candidate_link_recall(
@@ -114,3 +115,40 @@ def per_entity_candidate_recall(
         ) / len(true_set)
 
     return results
+def candidate_count_stats(
+    candidates: Mapping[str, Iterable[str] | None],
+) -> dict[str, float | int]:
+    """Calculate candidate-count statistics per Source-1 entity.
+
+    Returns the mean, median, p95, and maximum number of candidates
+    generated for each Source-1 entity.
+
+    Entities with no candidates are included with a count of zero.
+    """
+    if not candidates:
+        raise ValueError(
+            "Cannot calculate candidate-count statistics: "
+            "no candidate entities were provided."
+        )
+
+    counts = [
+        len(set(candidate_ids or []))
+        for candidate_ids in candidates.values()
+    ]
+
+    sorted_counts = sorted(counts)
+
+    p95_index = max(
+        0,
+        min(
+            len(sorted_counts) - 1,
+            int(0.95 * len(sorted_counts)),
+        ),
+    )
+
+    return {
+        "mean": mean(counts),
+        "median": median(counts),
+        "p95": float(sorted_counts[p95_index]),
+        "max": max(counts),
+    }
