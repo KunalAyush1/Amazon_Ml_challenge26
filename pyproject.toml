@@ -1,0 +1,31 @@
+[project]
+name = "amazon-ml-challenge"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate>=1.15.0",
+    "datasets>=5.0.1",
+    "jellyfish>=1.2.1",
+    "lightgbm>=4.7.0",
+    "numpy>=2.5.3",
+    "pandas>=3.0.6",
+    "pyarrow>=25.0.1",
+    "pyyaml>=6.0.3",
+    "rapidfuzz>=3.14.6",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
+    "sentence-transformers>=6.1.0",
+    "torch>=2.14.0",
+    "tqdm>=4.70.1",
+    "transformers>=5.17.0",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.11.2",
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+    "seaborn>=0.13.2",
+]
