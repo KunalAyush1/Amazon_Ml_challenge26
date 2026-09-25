@@ -26,10 +26,8 @@ def _token_set(value: str) -> set[str]:
 
 def _jaccard(left: set[str], right: set[str]) -> float:
     """Compute token Jaccard similarity."""
-    if not left and not right:
-        return 1.0
     if not left or not right:
-        return 0.0
+       return 0.0
     return len(left & right) / len(left | right)
 
 

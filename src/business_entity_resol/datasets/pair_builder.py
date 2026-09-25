@@ -87,6 +87,12 @@ def build_pair_dataset(
         # candidate pool and both records are available.
         if source1 is None or candidate is None or metadata is None:
             continue
+        
+        candidate_for_features = {
+            **dict(candidate),
+            **dict(metadata),
+        }
+
 
         features = pair_features(
             dict(source1),
