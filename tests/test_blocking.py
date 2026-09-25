@@ -758,3 +758,193 @@ def test_numeric_blocker_handles_missing_numbers():
     candidates = blocker.retrieve(source1)
 
     assert candidates == []
+from business_entity_resol.blocking.tfidf_blocker import TfidfBlocker
+
+
+def test_tfidf_blocker_matches_similar_name():
+    source2 = [
+        {
+            "entity_id": "S2-001",
+            "name_norm": "abc private limited",
+        },
+        {
+            "entity_id": "S2-002",
+            "name_norm": "xyz traders",
+        },
+    ]
+
+    source1 = {
+        "entity_id": "S1-001",
+        "name_norm": "abc private ltd",
+    }
+
+    blocker = TfidfBlocker(top_k=1)
+    blocker.fit(source2, [])
+
+    candidates = blocker.retrieve(source1)
+
+    assert len(candidates) == 1
+    assert candidates[0].candidate_id == "S2-001"
+    assert candidates[0].source == "S2"
+    assert candidates[0].rank == 1
+
+
+def test_tfidf_blocker_returns_top_k():
+    source2 = [
+        {
+            "entity_id": "S2-001",
+            "name_norm": "abc private limited",
+        },
+        {
+            "entity_id": "S2-002",
+            "name_norm": "abc private company",
+        },
+        {
+            "entity_id": "S2-003",
+            "name_norm": "xyz traders",
+        },
+    ]
+
+    source1 = {
+        "entity_id": "S1-001",
+        "name_norm": "abc private",
+    }
+
+    blocker = TfidfBlocker(top_k=2)
+    blocker.fit(source2, [])
+
+    candidates = blocker.retrieve(source1)
+
+    assert len(candidates) == 2
+    assert [candidate.rank for candidate in candidates] == [1, 2]
+
+
+def test_tfidf_blocker_supports_source3():
+    source3 = [
+        {
+            "entity_id": "S3-001",
+            "name_norm": "abc private limited",
+        }
+    ]
+
+    source1 = {
+        "entity_id": "S1-001",
+        "name_norm": "abc private ltd",
+    }
+
+    blocker = TfidfBlocker(top_k=1)
+    blocker.fit([], source3)
+
+    candidates = blocker.retrieve(source1)
+
+    assert len(candidates) == 1
+    assert candidates[0].candidate_id == "S3-001"
+    assert candidates[0].source == "S3"
+
+
+def test_tfidf_blocker_uses_name_and_address():
+    source2 = [
+        {
+            "entity_id": "S2-001",
+            "name_norm": "completely different name",
+            "address_norm": "21 mg road delhi",
+        },
+        {
+            "entity_id": "S2-002",
+            "name_norm": "xyz traders",
+            "address_norm": "10 main road mumbai",
+        },
+    ]
+
+    source1 = {
+        "entity_id": "S1-001",
+        "name_norm": "unknown business",
+        "address_norm": "21 mg road delhi",
+    }
+
+    blocker = TfidfBlocker(top_k=1)
+    blocker.fit(source2, [])
+
+    candidates = blocker.retrieve(source1)
+
+    assert len(candidates) == 1
+    assert candidates[0].candidate_id == "S2-001"
+
+
+def test_tfidf_blocker_handles_missing_values():
+    source2 = [
+        {
+            "entity_id": "S2-001",
+            "name_norm": None,
+            "address_norm": None,
+        }
+    ]
+
+    source1 = {
+        "entity_id": "S1-001",
+        "name_norm": None,
+        "address_norm": None,
+    }
+
+    blocker = TfidfBlocker(top_k=5)
+    blocker.fit(source2, [])
+
+    assert blocker.retrieve(source1) == []
+def test_tfidf_blocker_rejects_invalid_top_k():
+    import pytest
+
+    with pytest.raises(ValueError):
+        TfidfBlocker(top_k=0)
+
+
+def test_tfidf_blocker_rejects_invalid_ngram_range():
+    import pytest
+
+    with pytest.raises(ValueError):
+        TfidfBlocker(ngram_range=(5, 2))
+
+
+def test_tfidf_blocker_retrieve_many():
+    source2 = [
+        {
+            "entity_id": "S2-001",
+            "name_norm": "abc private limited",
+        },
+        {
+            "entity_id": "S2-002",
+            "name_norm": "xyz traders",
+        },
+    ]
+
+    source1 = [
+        {
+            "entity_id": "S1-001",
+            "name_norm": "abc private ltd",
+        },
+        {
+            "entity_id": "S1-002",
+            "name_norm": "xyz trader",
+        },
+    ]
+
+    blocker = TfidfBlocker(top_k=1)
+    blocker.fit(source2, [])
+
+    results = blocker.retrieve_many(source1)
+
+    assert set(results) == {"S1-001", "S1-002"}
+    assert results["S1-001"][0].candidate_id == "S2-001"
+    assert results["S1-002"][0].candidate_id == "S2-002"
+
+
+def test_tfidf_blocker_handles_empty_sources():
+    blocker = TfidfBlocker(top_k=5)
+
+    blocker.fit([], [])
+
+    assert blocker.retrieve(
+        {
+            "entity_id": "S1-001",
+            "name_norm": "abc business",
+        }
+    ) == []
