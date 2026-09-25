@@ -1,5 +1,6 @@
 from business_entity_resol.features.name_features import name_features
 from business_entity_resol.features.address_features import address_features
+from business_entity_resol.features.numeric_features import numeric_features
 
 
 # =========================
@@ -183,3 +184,82 @@ def test_address_features_missing_values():
     assert features["address_compact_exact"] == 0
     assert features["address_ratio"] == 0.0
     assert features["address_token_jaccard"] == 0.0
+    
+# =========================
+# Numeric Features
+# =========================
+
+def test_numeric_features_exact_match():
+    source1 = {
+        "address": "12 MG Road Delhi 110001",
+    }
+
+    candidate = {
+        "address": "12 MG Road Delhi 110001",
+    }
+
+    features = numeric_features(source1, candidate)
+
+    assert features["numeric_count_1"] == 2
+    assert features["numeric_count_2"] == 2
+    assert features["numeric_overlap_count"] == 2
+    assert features["numeric_jaccard"] == 1.0
+    assert features["numeric_exact_match"] == 1
+    assert features["numeric_any_overlap"] == 1
+
+
+def test_numeric_features_partial_overlap():
+    source1 = {
+        "address": "12 MG Road Delhi 110001",
+    }
+
+    candidate = {
+        "address": "12 MG Road Delhi 110002",
+    }
+
+    features = numeric_features(source1, candidate)
+
+    assert features["numeric_count_1"] == 2
+    assert features["numeric_count_2"] == 2
+    assert features["numeric_overlap_count"] == 1
+    assert features["numeric_jaccard"] == 1 / 3
+    assert features["numeric_exact_match"] == 0
+    assert features["numeric_any_overlap"] == 1
+
+
+def test_numeric_features_no_overlap():
+    source1 = {
+        "address": "12 MG Road Delhi",
+    }
+
+    candidate = {
+        "address": "45 Park Road Mumbai",
+    }
+
+    features = numeric_features(source1, candidate)
+
+    assert features["numeric_count_1"] == 1
+    assert features["numeric_count_2"] == 1
+    assert features["numeric_overlap_count"] == 0
+    assert features["numeric_jaccard"] == 0.0
+    assert features["numeric_exact_match"] == 0
+    assert features["numeric_any_overlap"] == 0
+
+
+def test_numeric_features_missing_values():
+    source1 = {
+        "address": None,
+    }
+
+    candidate = {
+        "address": "12 MG Road Delhi",
+    }
+
+    features = numeric_features(source1, candidate)
+
+    assert features["numeric_count_1"] == 0
+    assert features["numeric_count_2"] == 1
+    assert features["numeric_overlap_count"] == 0
+    assert features["numeric_jaccard"] == 0.0
+    assert features["numeric_exact_match"] == 0
+    assert features["numeric_any_overlap"] == 0
