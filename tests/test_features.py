@@ -1,6 +1,7 @@
 from business_entity_resol.features.name_features import name_features
 from business_entity_resol.features.address_features import address_features
 from business_entity_resol.features.numeric_features import numeric_features
+from business_entity_resol.features.country_features import country_features
 
 
 # =========================
@@ -263,3 +264,89 @@ def test_numeric_features_missing_values():
     assert features["numeric_jaccard"] == 0.0
     assert features["numeric_exact_match"] == 0
     assert features["numeric_any_overlap"] == 0
+    
+# =========================
+# Country Features
+# =========================
+
+def test_country_features_exact_match():
+    source1 = {
+        "country": "India",
+        "country_norm": "india",
+        "country_code": "IN",
+    }
+
+    candidate = {
+        "country": "India",
+        "country_norm": "india",
+        "country_code": "IN",
+    }
+
+    features = country_features(source1, candidate)
+
+    assert features["country_exact"] == 1
+    assert features["country_norm_exact"] == 1
+    assert features["country_code_exact"] == 1
+    assert features["country_both_present"] == 1
+    assert features["country_missing_1"] == 0
+    assert features["country_missing_2"] == 0
+
+
+def test_country_features_case_insensitive():
+    source1 = {
+        "country": "INDIA",
+    }
+
+    candidate = {
+        "country": "india",
+    }
+
+    features = country_features(source1, candidate)
+
+    assert features["country_exact"] == 1
+    assert features["country_norm_exact"] == 1
+    assert features["country_code_exact"] == 1
+
+
+def test_country_features_different_countries():
+    source1 = {
+        "country": "India",
+        "country_norm": "india",
+        "country_code": "IN",
+    }
+
+    candidate = {
+        "country": "United States",
+        "country_norm": "united states",
+        "country_code": "US",
+    }
+
+    features = country_features(source1, candidate)
+
+    assert features["country_exact"] == 0
+    assert features["country_norm_exact"] == 0
+    assert features["country_code_exact"] == 0
+    assert features["country_both_present"] == 1
+
+
+def test_country_features_missing_values():
+    source1 = {
+        "country": None,
+        "country_norm": None,
+        "country_code": None,
+    }
+
+    candidate = {
+        "country": "India",
+        "country_norm": "india",
+        "country_code": "IN",
+    }
+
+    features = country_features(source1, candidate)
+
+    assert features["country_exact"] == 0
+    assert features["country_norm_exact"] == 0
+    assert features["country_code_exact"] == 0
+    assert features["country_both_present"] == 0
+    assert features["country_missing_1"] == 1
+    assert features["country_missing_2"] == 0
