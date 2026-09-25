@@ -182,3 +182,30 @@ def test_no_non_singleton_entities_raises():
             {"S1-001": set()},
             {"S1-001": set()},
         )
+def test_candidate_count_stats():
+    from business_entity_resol.evaluation.blocking_recall import (
+        candidate_count_stats,
+    )
+
+    candidates = {
+        "S1-001": {"S2-001", "S2-002"},
+        "S1-002": {"S2-003"},
+        "S1-003": set(),
+        "S1-004": {"S2-004", "S2-005", "S2-006"},
+    }
+
+    result = candidate_count_stats(candidates)
+
+    assert result["mean"] == pytest.approx(1.5)
+    assert result["median"] == pytest.approx(1.5)
+    assert result["p95"] == pytest.approx(3.0)
+    assert result["max"] == 3
+
+
+def test_candidate_count_stats_empty():
+    from business_entity_resol.evaluation.blocking_recall import (
+        candidate_count_stats,
+    )
+
+    with pytest.raises(ValueError):
+        candidate_count_stats({})
